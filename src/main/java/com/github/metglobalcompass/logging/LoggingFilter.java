@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
 
+import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
 
 import org.springframework.http.HttpHeaders;
@@ -25,12 +26,16 @@ public class LoggingFilter extends OncePerRequestFilter {
 		ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
 		ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
+
 		filterChain.doFilter(requestWrapper, responseWrapper);
 
 		String method = requestWrapper.getMethod();
 		String url = requestWrapper.getRequestURL().toString();
+		Map<String, String[]> reqMap = requestWrapper.getParameterMap();
+		String reqJson = new Gson().toJson(reqMap);
+
 		String requestBody = IOUtils.toString(requestWrapper.getInputStream(), "UTF-8");
-		System.out.println("Request method: " + method + " - params: " + url + " - body: " + requestBody);
+		System.out.println("Request method: " + method + " - params: " + url + " " + reqJson + " - body: " + requestBody);
 
 		int status = responseWrapper.getStatusCode();
 		HttpHeaders headers = new HttpHeaders();
