@@ -22,20 +22,12 @@ public class LoggingFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
+		String requestBody = IOUtils.toString(request.getInputStream());
+		System.out.println(requestBody);
 
-		ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
 		ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
-
-		filterChain.doFilter(requestWrapper, responseWrapper);
-
-		String method = requestWrapper.getMethod();
-		String url = requestWrapper.getRequestURL().toString();
-		Map<String, String[]> reqMap = requestWrapper.getParameterMap();
-		String reqJson = new Gson().toJson(reqMap);
-
-		String requestBody = IOUtils.toString(requestWrapper.getInputStream(), "UTF-8");
-		System.out.println("Request method: " + method + " - params: " + url + " " + reqJson + " - body: " + requestBody);
+		filterChain.doFilter(request, responseWrapper);
 
 		int status = responseWrapper.getStatusCode();
 		HttpHeaders headers = new HttpHeaders();
