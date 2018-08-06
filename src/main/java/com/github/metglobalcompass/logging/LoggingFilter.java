@@ -6,9 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.util.Map;
 
-import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
 
 import org.springframework.http.HttpHeaders;
@@ -22,12 +20,18 @@ public class LoggingFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		String requestBody = IOUtils.toString(request.getInputStream());
-		System.out.println(requestBody);
 
+		//we should use wrapper for request too, because input stream closes after request
+		ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
 		ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
-		filterChain.doFilter(request, responseWrapper);
+		filterChain.doFilter(requestWrapper, responseWrapper);
+
+		String mainUrl = requestWrapper.getRequestURL().toString(); //path included
+		String nextPath = requestWrapper.getQueryString();
+		nextPath = (nextPath == null) ? "" : "?" + nextPath;
+		String requestBody = new String(requestWrapper.getContentAsByteArray()).replaceAll("\\s{2,}|\\n", "");
+		System.out.println("URL: " + mainUrl + nextPath + " with request " + requestBody);
 
 		int status = responseWrapper.getStatusCode();
 		HttpHeaders headers = new HttpHeaders();
