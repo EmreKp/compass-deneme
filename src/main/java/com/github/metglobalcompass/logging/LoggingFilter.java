@@ -7,9 +7,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+import com.github.metglobalcompass.logging.model.LogModel;
 import org.apache.commons.io.IOUtils;
 
-import org.springframework.http.HttpHeaders;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -17,9 +18,19 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
 
 @Component
 public class LoggingFilter extends OncePerRequestFilter {
+
+	private final LogHandler handler;
+
+	@Autowired
+	public LoggingFilter(LogHandler handler) {
+		this.handler = handler;
+	}
+
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
+
+		LogModel model = new LogModel();
 
 		//we should use wrapper for request too, because input stream closes after request
 		ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
@@ -30,16 +41,19 @@ public class LoggingFilter extends OncePerRequestFilter {
 		String mainUrl = requestWrapper.getRequestURL().toString(); //path included
 		String nextPath = requestWrapper.getQueryString();
 		nextPath = (nextPath == null) ? "" : "?" + nextPath;
+		model.setUrl(mainUrl + nextPath);
+
 		String requestBody = new String(requestWrapper.getContentAsByteArray()).replaceAll("\\s{2,}|\\n", "");
-		System.out.println("URL: " + mainUrl + nextPath + " with request " + requestBody);
+		model.setRequestBody(requestBody);
 
 		int status = responseWrapper.getStatusCode();
-		HttpHeaders headers = new HttpHeaders();
-		responseWrapper.getHeaderNames().forEach(
-				header -> headers.add(header, responseWrapper.getHeader(header))
-		);
+		model.setStatus(status);
+
 		String responseBody = IOUtils.toString(responseWrapper.getContentInputStream(), "UTF-8");
-		System.out.println("Status code: " + status + " with response: " + responseBody);
+		model.setResponseBody(responseBody);
+
 		responseWrapper.copyBodyToResponse();
+
+		handler.handle(model);
 	}
 }
