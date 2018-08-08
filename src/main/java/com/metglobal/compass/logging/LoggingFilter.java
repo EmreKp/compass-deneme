@@ -1,4 +1,4 @@
-package com.github.metglobalcompass.logging;
+package com.metglobal.compass.logging;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-import com.github.metglobalcompass.logging.model.LogModel;
+import com.metglobal.compass.logging.model.LogModel;
 import org.apache.commons.io.IOUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;

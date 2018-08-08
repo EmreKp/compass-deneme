@@ -1,4 +1,4 @@
-package com.github.metglobalcompass.logging.model;
+package com.metglobal.compass.logging.model;
 
 public class LogModel {
 
